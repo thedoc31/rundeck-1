@@ -19,7 +19,7 @@
     "build:library": "run-script-os",
     "build:library:darwin:linux": "export NODE_OPTIONS=--openssl-legacy-provider && VUE_CLI_SERVICE_CONFIG_PATH=$PWD/vue.config.library.js ./node_modules/.bin/vue-cli-service build --mode production && tsc -p ./tsconfig.build.json && npm run clean",
     "build:library:win32": "VUE_CLI_SERVICE_CONFIG_PATH=$PWD/vue.config.library.js vue-cli-service.cmd build --mode production && tsc -p ./tsconfig.build.json && npm run clean",
-    "storybook": "storybook dev -p 6006 --debug-webpack",
+    "storybook": "storybook dev -p 6006 -- --debug-webpack",
     "clean": "cp -a ./lib/src/library/. ./lib && rm -rf ./lib/src && exit 0",
     "lint": "eslint src --fix",
     "build-storybook": "storybook build"
@@ -51,7 +51,7 @@
     "moment": "^2.29.4",
     "npm": "^10.2.2",
     "perfect-scrollbar": "^1.5.0",
-    "primevue": "^3.47.2",
+    "primevue": "^3.50.0",
     "uiv": "^2.0.6",
     "vue": "^3.4.21",
     "vue-cookies": "^1.8.3",
