@@ -64,7 +64,7 @@ class ReportService  {
 //            rep.errors.allErrors.each {
 //                System.err.println(it)
 //            }
-            return [error:true,report:saveReportResponse.report]
+            return [error:true,report:saveReportResponse.report,errors:saveReportResponse.errors]
         }else{
             return [success:true]
         }
@@ -517,8 +517,8 @@ class ReportService  {
         return rundeckAuthContextEvaluator.authorizeProjectResources(authContext,resHS, constraints, project)
     }
 
-    def deleteByExecutionId(Long id){
-        execReportDataProvider.deleteAllByExecutionId(id)
+    def deleteByExecutionUuid(String uuid){
+        execReportDataProvider.deleteAllByExecutionUuid(uuid)
     }
     private boolean isOracleDatasource(){
         def dataSource = applicationContext.getBean('dataSource', DataSource)

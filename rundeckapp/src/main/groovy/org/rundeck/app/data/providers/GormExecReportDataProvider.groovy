@@ -8,21 +8,18 @@ import org.rundeck.app.data.model.v1.query.RdExecQuery
 import org.rundeck.app.data.model.v1.report.RdExecReport
 import org.rundeck.app.data.model.v1.report.dto.SaveReportRequest
 import org.rundeck.app.data.model.v1.report.dto.SaveReportResponse
-import rundeck.data.report.SaveReportResponseImpl;
+import rundeck.data.report.SaveReportResponseImpl
 import org.rundeck.app.data.providers.v1.report.ExecReportDataProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.context.MessageSource
 import org.springframework.transaction.TransactionStatus
-import rundeck.BaseReport;
+import rundeck.BaseReport
 import rundeck.ExecReport
-import rundeck.Execution
 import rundeck.ReferencedExecution
 import rundeck.ScheduledExecution
 import rundeck.services.ConfigurationService
-
-import javax.persistence.EntityNotFoundException
-import javax.sql.DataSource;
+import javax.sql.DataSource
 
 @CompileStatic(TypeCheckingMode.SKIP)
 class GormExecReportDataProvider implements ExecReportDataProvider {
@@ -39,30 +36,8 @@ class GormExecReportDataProvider implements ExecReportDataProvider {
     }
 
     @Override
-    SaveReportResponse createReportFromExecution(Long id) {
-        Execution execution = Execution.get(id)
-        if(!execution) throw new EntityNotFoundException("Execution not found with id: ${id}")
-        createReportFromExecution(execution)
-    }
-
-    @Override
-    SaveReportResponse createReportFromExecution(String uuid) {
-        Execution execution = Execution.findByUuid(uuid)
-        if(!execution) throw new EntityNotFoundException("Execution not found with uuid: ${uuid}")
-        createReportFromExecution(execution)
-    }
-
-    SaveReportResponse createReportFromExecution(Execution execution) {
-        ExecReport execReport = ExecReport.fromExec(execution)
-        boolean isUpdated = execReport.save(flush: true)
-        String errors = execReport.errors.hasErrors() ? execReport.errors.allErrors.collect { messageSource.getMessage(it,null) }.join(",")  : null
-        return new SaveReportResponseImpl(report: execReport, isSaved: isUpdated, errors: errors)
-    }
-
-    @Override
     SaveReportResponse saveReport(SaveReportRequest saveReportRequest) {
         ExecReport execReport = new ExecReport()
-        Execution execution = Execution.get(saveReportRequest.executionId)
         execReport.executionId = saveReportRequest.executionId
         execReport.jobId = saveReportRequest.jobId
         execReport.adhocExecution = saveReportRequest.adhocExecution
@@ -82,7 +57,8 @@ class GormExecReportDataProvider implements ExecReportDataProvider {
         execReport.message = saveReportRequest.message
         execReport.dateStarted = saveReportRequest.dateStarted
         execReport.dateCompleted = saveReportRequest.dateCompleted
-        execReport.jobUuid = execution.scheduledExecution?.uuid
+        execReport.jobUuid = saveReportRequest.jobUuid
+        execReport.executionUuid = saveReportRequest.executionUuid
         boolean isUpdated = execReport.save(flush: true)
         String errors = execReport.errors.hasErrors() ? execReport.errors.allErrors.collect { messageSource.getMessage(it,null) }.join(",") : null
         return new SaveReportResponseImpl(report: execReport, isSaved: isUpdated, errors: errors)
@@ -90,7 +66,7 @@ class GormExecReportDataProvider implements ExecReportDataProvider {
 
     @Override
     List<RdExecReport> findAllByProject(String projectName) {
-        return BaseReport.findAllByProject(projectName)
+        return ExecReport.findAllByProject(projectName)
     }
 
     @Override
@@ -98,12 +74,8 @@ class GormExecReportDataProvider implements ExecReportDataProvider {
         return ExecReport.findAllByStatus(status)
     }
     @Override
-    List<RdExecReport> findAllByExecutionId(Long id) {
-        return ExecReport.findAllByExecutionId(id)
-    }
-    @Override
-    List<RdExecReport> findAllByProjectAndExecutionIdInList(String projectName, List<Long> execIds) {
-        return ExecReport.findAllByProjectAndExecutionIdInList(projectName, execIds)
+    List<RdExecReport> findAllByProjectAndExecutionUuidInList(String projectName, List<String> execUuids) {
+        return ExecReport.findAllByProjectAndExecutionUuidInList(projectName, execUuids)
     }
 
     @Override
@@ -205,8 +177,8 @@ class GormExecReportDataProvider implements ExecReportDataProvider {
     }
 
     @Override
-    void deleteAllByExecutionId(Long executionId) {
-        ExecReport.findAllByExecutionId(executionId).each { rpt ->
+    void deleteAllByExecutionUuid(String executionUuid) {
+        ExecReport.findAllByExecutionUuid(executionUuid).each { rpt ->
             rpt.delete()
         }
     }
