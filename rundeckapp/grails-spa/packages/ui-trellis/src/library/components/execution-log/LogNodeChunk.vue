@@ -10,6 +10,7 @@
       :min-item-size="2"
       class="scroller execution-log__chunk"
       key-field="lineNumber"
+      page-mode
     >
       <template #default="{ item, index, active }">
         <DynamicScrollerItem
