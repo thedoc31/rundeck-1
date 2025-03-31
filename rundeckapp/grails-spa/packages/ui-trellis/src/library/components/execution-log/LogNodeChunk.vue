@@ -7,19 +7,23 @@
       :key="nodeChunkKey"
       ref="scroller"
       :items="entryOutputs"
-      :min-item-size="2"
+      :min-item-size="21"
+      :buffer="200"
       class="scroller execution-log__chunk"
       key-field="lineNumber"
       page-mode
+      :prerender="10"
+      :emit-update="true"
+      :update-interval="100"
     >
       <template #default="{ item, index, active }">
         <DynamicScrollerItem
           :item="item"
           :data-index="index"
           :active="active"
-          :size-dependencies="[item.log, item.logHtml]"
-          :emit-resize="emitResize"
-          @resize="scrollToLine()"
+          :size-dependencies="[item.log, item.logHtml, item.lineNumber]"
+          :emit-resize="true"
+          @resize="onItemResize"
         >
           <LogEntryFlex
             :key="index"
@@ -97,6 +101,7 @@ export default defineComponent({
     entries: {
       type: Array as PropType<ExecutionOutputEntry[]>,
       required: false,
+      default: () => []
     },
     jumpToLine: {
       type: Number,
@@ -140,6 +145,9 @@ export default defineComponent({
       };
     },
     entryOutputs() {
+      if (!this.entries) {
+        return [];
+      }
       return this.entries.map((entry, index) => {
         return this.buildEntry(entry, index);
       });
@@ -209,7 +217,7 @@ export default defineComponent({
     onSelectLine(index: number) {
       this.$emit("line-select", index);
     },
-    scrollToLine() {
+    onItemResize() {
       if (this.follow) {
         this.$refs.scroller.scrollToBottom();
       }
@@ -222,5 +230,10 @@ export default defineComponent({
 @import "~vue-virtual-scroller/dist/vue-virtual-scroller.css";
 .scroller {
   height: 100%;
+  position: relative;
+}
+.execution-log__node-chunk {
+  height: 100%;
+  position: relative;
 }
 </style>
